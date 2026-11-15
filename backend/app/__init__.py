@@ -1,0 +1,1 @@
+"""CookAssistant API application package."""

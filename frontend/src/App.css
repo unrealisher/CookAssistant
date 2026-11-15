@@ -1,0 +1,314 @@
+.page-shell {
+  width: min(100% - 48px, 1220px);
+  min-height: 100vh;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+}
+
+.topbar {
+  min-height: 88px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid var(--line);
+}
+
+.brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  color: var(--ink);
+  font-size: 18px;
+  font-weight: 700;
+  letter-spacing: -0.06em;
+  text-decoration: none;
+}
+
+.brand-light {
+  color: #83877e;
+  font-weight: 400;
+}
+
+.brand-mark {
+  width: 26px;
+  height: 26px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 3px;
+  transform: rotate(-8deg);
+}
+
+.brand-mark span {
+  display: block;
+  border-radius: 8px 3px 8px 3px;
+  background: var(--green);
+}
+
+.brand-mark span:nth-child(2) {
+  transform: translateY(5px) rotate(90deg);
+  background: #a6b78b;
+}
+
+.brand-mark span:nth-child(3) {
+  grid-column: 1;
+  transform: translateX(6px) translateY(-2px) rotate(-35deg);
+  background: #c4a972;
+}
+
+.api-indicator {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  color: #72786f;
+  font-size: 12px;
+  letter-spacing: 0.01em;
+}
+
+.api-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #d1a453;
+  box-shadow: 0 0 0 4px #d1a45320;
+}
+
+.api-indicator--online .api-dot {
+  background: #5d8a5f;
+  box-shadow: 0 0 0 4px #5d8a5f20;
+}
+
+.api-indicator--offline .api-dot {
+  background: #b9654f;
+  box-shadow: 0 0 0 4px #b9654f20;
+}
+
+.welcome-card {
+  flex: 1;
+  display: grid;
+  grid-template-columns: minmax(0, 1.05fr) minmax(320px, 0.95fr);
+  align-items: center;
+  gap: clamp(32px, 7vw, 110px);
+  padding: 72px clamp(0px, 4vw, 50px);
+}
+
+.welcome-copy {
+  max-width: 560px;
+}
+
+.eyebrow,
+.preview-topline,
+.preview-category,
+.page-footer {
+  color: #85897e;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+}
+
+.eyebrow {
+  margin: 0 0 24px;
+  color: #77845f;
+}
+
+h1 {
+  max-width: 600px;
+  margin: 0;
+  color: var(--ink);
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: clamp(42px, 5.2vw, 69px);
+  font-weight: 400;
+  letter-spacing: -0.055em;
+  line-height: 1.04;
+}
+
+.intro {
+  max-width: 440px;
+  margin: 24px 0 0;
+  color: #747a70;
+  font-size: 16px;
+  line-height: 1.7;
+}
+
+.next-step {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+  margin-top: 48px;
+  padding-top: 24px;
+  border-top: 1px solid var(--line);
+}
+
+.step-number {
+  color: #9a9e90;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 17px;
+  font-style: italic;
+}
+
+.step-title,
+.step-description {
+  margin: 0;
+}
+
+.step-title {
+  color: var(--ink);
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.step-description {
+  margin-top: 6px;
+  color: #84897f;
+  font-size: 13px;
+}
+
+.recipe-preview {
+  position: relative;
+  min-height: 455px;
+  padding: 28px 32px 24px;
+  overflow: hidden;
+  border: 1px solid #e4e0d6;
+  border-radius: 4px;
+  background: #eeece4;
+  box-shadow: 0 18px 50px #34392a12;
+}
+
+.preview-topline,
+.preview-caption {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.preview-sparkle {
+  color: #9ba47a;
+  font-size: 21px;
+}
+
+.plate {
+  width: min(100%, 290px);
+  aspect-ratio: 1;
+  display: grid;
+  place-items: center;
+  margin: 28px auto 24px;
+  border: 1px solid #ffffffc0;
+  border-radius: 50%;
+  background: radial-gradient(circle, #f9f7f0 0 48%, #f0ede5 49% 50%, #fbfaf5 51% 67%, #e2ded3 68% 69%, #f5f3ec 70%);
+  box-shadow: 0 12px 34px #424a3215, inset 0 0 18px #b9b3a22a;
+}
+
+.plate-center {
+  position: relative;
+  width: 128px;
+  height: 128px;
+  border-radius: 50%;
+  background: radial-gradient(circle, #d9cdb4 0 49%, #c8b99a 50% 51%, transparent 52%);
+}
+
+.pasta {
+  position: absolute;
+  width: 47px;
+  height: 19px;
+  border: 5px solid #d99e48;
+  border-right-color: #f2c470;
+  border-radius: 50%;
+  transform: rotate(24deg);
+}
+
+.pasta-one { top: 43px; left: 41px; }
+.pasta-two { top: 61px; left: 29px; transform: rotate(-32deg); }
+.pasta-three { top: 66px; left: 52px; transform: rotate(66deg); }
+
+.tomato {
+  position: absolute;
+  width: 17px;
+  height: 17px;
+  border-radius: 45% 55% 50% 50%;
+  background: radial-gradient(circle at 35% 32%, #f3b269, #c8643f 72%);
+  box-shadow: inset -2px -2px 3px #874e3633;
+}
+
+.tomato-one { top: 35px; left: 38px; }
+.tomato-two { top: 76px; left: 75px; width: 13px; height: 13px; }
+
+.herb {
+  position: absolute;
+  width: 8px;
+  height: 20px;
+  border-radius: 100% 0 100% 0;
+  background: #70804d;
+  transform: rotate(35deg);
+}
+
+.herb-one { top: 26px; left: 61px; }
+.herb-two { top: 87px; left: 40px; transform: rotate(94deg); }
+.herb-three { top: 48px; left: 89px; transform: rotate(110deg); }
+
+.preview-caption {
+  gap: 12px;
+}
+
+.preview-category {
+  color: #929588;
+  font-size: 8px;
+  white-space: nowrap;
+}
+
+.preview-line {
+  height: 1px;
+  flex: 1;
+  background: #d6d2c7;
+}
+
+.preview-note {
+  position: absolute;
+  right: 40px;
+  bottom: 120px;
+  display: flex;
+  align-items: flex-start;
+  gap: 5px;
+  color: #697650;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 14px;
+  font-style: italic;
+  transform: rotate(-8deg);
+}
+
+.note-arrow {
+  margin-top: 13px;
+  font-size: 26px;
+}
+
+.page-footer {
+  display: flex;
+  justify-content: space-between;
+  gap: 20px;
+  padding: 24px 0 30px;
+  border-top: 1px solid var(--line);
+  font-size: 9px;
+}
+
+@media (max-width: 760px) {
+  .page-shell { width: min(100% - 32px, 560px); }
+  .topbar { min-height: 72px; }
+  .welcome-card {
+    grid-template-columns: 1fr;
+    gap: 40px;
+    padding: 52px 0 42px;
+  }
+  h1 { font-size: clamp(40px, 12vw, 58px); }
+  .intro { font-size: 15px; }
+  .next-step { margin-top: 32px; }
+  .recipe-preview { min-height: 420px; padding: 24px; }
+  .plate { width: min(100%, 270px); }
+  .page-footer { font-size: 8px; }
+}
+
+@media (max-width: 420px) {
+  .api-indicator { font-size: 10px; }
+  .brand { font-size: 16px; }
+  .preview-caption { gap: 7px; }
+  .preview-category { font-size: 7px; letter-spacing: 0.1em; }
+  .page-footer { flex-direction: column; gap: 8px; }
+}
