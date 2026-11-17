@@ -38,6 +38,8 @@ def run_migrations_online() -> None:
     )
     with connectable.connect() as connection:
         connection.exec_driver_sql("PRAGMA foreign_keys=ON")
+        # End SQLAlchemy's implicit transaction before Alembic manages its own.
+        connection.commit()
         context.configure(
             connection=connection,
             target_metadata=target_metadata,
@@ -46,6 +48,7 @@ def run_migrations_online() -> None:
         )
         with context.begin_transaction():
             context.run_migrations()
+        connection.commit()
     connectable.dispose()
 
 
