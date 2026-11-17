@@ -21,6 +21,11 @@ dev = [
   "ruff>=0.8,<1",
 ]
 
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["app*"]
+exclude = ["alembic*", "tests*"]
+
 [tool.fastapi]
 entrypoint = "app.main:app"
 
