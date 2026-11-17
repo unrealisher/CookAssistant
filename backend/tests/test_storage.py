@@ -90,3 +90,20 @@ def test_run_migrations_creates_owner_recipe_and_session_tables(
         "tags",
         "recipe_tags",
     } <= tables
+
+
+def test_migration_enforces_single_owner_id(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    data_dir = tmp_path / "single-owner-database"
+    monkeypatch.setenv("COOKASSISTANT_DATA_DIR", str(data_dir))
+    db.run_migrations()
+
+    with sqlite3.connect(data_dir / db.DATABASE_FILENAME) as connection:
+        connection.execute(
+            "INSERT INTO users (id, username, password_hash) VALUES (1, 'owner', 'hash')"
+        )
+        with pytest.raises(sqlite3.IntegrityError, match="CHECK constraint failed"):
+            connection.execute(
+                "INSERT INTO users (id, username, password_hash) VALUES (2, 'other', 'hash')"
+            )
