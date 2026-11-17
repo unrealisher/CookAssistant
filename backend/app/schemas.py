@@ -7,7 +7,6 @@ from typing import Annotated
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 
-
 Username = Annotated[str, Field(min_length=1, max_length=64)]
 Password = Annotated[str, Field(min_length=12, max_length=256)]
 Name = Annotated[str, Field(min_length=1, max_length=255)]
