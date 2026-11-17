@@ -84,9 +84,7 @@ def _recipe_response(recipe: Recipe) -> RecipeResponse:
 
 
 def _owned_recipe(db: Session, owner_id: int, recipe_id: int) -> Recipe:
-    recipe = db.scalar(
-        select(Recipe).where(Recipe.id == recipe_id, Recipe.owner_id == owner_id)
-    )
+    recipe = db.scalar(select(Recipe).where(Recipe.id == recipe_id, Recipe.owner_id == owner_id))
     if recipe is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Recipe not found")
     return recipe

@@ -26,9 +26,7 @@ def hash_password(password: str) -> str:
     """Hash a password with a random salt using PBKDF2-HMAC-SHA256."""
 
     salt = secrets.token_bytes(16)
-    digest = hashlib.pbkdf2_hmac(
-        "sha256", password.encode("utf-8"), salt, PASSWORD_ITERATIONS
-    )
+    digest = hashlib.pbkdf2_hmac("sha256", password.encode("utf-8"), salt, PASSWORD_ITERATIONS)
     salt_text = base64.urlsafe_b64encode(salt).decode("ascii")
     digest_text = base64.urlsafe_b64encode(digest).decode("ascii")
     return f"{_PASSWORD_SCHEME}${PASSWORD_ITERATIONS}${salt_text}${digest_text}"
