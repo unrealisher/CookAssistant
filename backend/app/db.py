@@ -7,11 +7,12 @@ from collections.abc import Generator
 from functools import lru_cache
 from pathlib import Path
 
-from alembic import command
-from alembic.config import Config
 from sqlalchemy import create_engine, event
 from sqlalchemy.engine import Engine, URL
 from sqlalchemy.orm import DeclarativeBase, Session
+
+from alembic import command
+from alembic.config import Config
 
 DATABASE_FILENAME = "cookassistant.sqlite3"
 DATA_DIRECTORY_ENV = "COOKASSISTANT_DATA_DIR"
