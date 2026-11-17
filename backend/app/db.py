@@ -9,7 +9,7 @@ from pathlib import Path
 
 from alembic.config import Config
 from sqlalchemy import create_engine, event
-from sqlalchemy.engine import Engine, URL
+from sqlalchemy.engine import URL, Engine
 from sqlalchemy.orm import DeclarativeBase, Session
 
 from alembic import command
