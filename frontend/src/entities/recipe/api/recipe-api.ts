@@ -5,7 +5,8 @@ export const recipeApi = {
   list: (query = "") => {
     const params = new URLSearchParams();
     if (query.trim()) params.set("q", query.trim());
-    const suffix = params.size ? `?${params.toString()}` : "";
+    const encodedQuery = params.toString();
+    const suffix = encodedQuery ? `?${encodedQuery}` : "";
     return apiRequest<Recipe[]>(`/api/v1/recipes${suffix}`);
   },
   get: (recipeId: number) => apiRequest<Recipe>(`/api/v1/recipes/${recipeId}`),
