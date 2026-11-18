@@ -17,9 +17,7 @@ npm install --global pnpm@11
 
 ## Запуск для разработки
 
-Откройте два терминала в корне проекта.
-
-В первом создайте окружение Python и запустите API:
+Откройте два терминала в корне проекта. Один раз подготовьте окружение Python:
 
 ```powershell
 cd backend
@@ -27,8 +25,16 @@ py -3.12 -m venv .venv
 .\.venv\Scripts\Activate.ps1
 python -m pip install --upgrade pip
 python -m pip install -e ".[dev]"
-python -m uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
+cd ..
 ```
+
+В первом терминале запускайте API одной командой:
+
+```powershell
+.\backend\run.ps1
+```
+
+API автоматически перезапускается после изменения Python-файлов в `backend`.
 
 Во втором установите зависимости сайта и запустите Vite:
 
