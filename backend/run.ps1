@@ -15,7 +15,7 @@ if (-not $pythonPath) {
 
 Push-Location $backendDirectory
 try {
-    & $pythonPath -m uvicorn app.main:app --host 0.0.0.0 --port 8000
+    & $pythonPath -m uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
 }
 finally {
     Pop-Location
