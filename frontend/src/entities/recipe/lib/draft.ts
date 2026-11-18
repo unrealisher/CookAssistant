@@ -1,5 +1,17 @@
 import type { Recipe, RecipeDraft, RecipeInput } from "../model/types";
 
+export type RecipeDraftIssue =
+  | { field: "name"; message: string }
+  | { field: "ingredient"; index: number; message: string }
+  | { field: "step"; index: number; message: string };
+
+export class RecipeDraftValidationError extends Error {
+  constructor(readonly issues: RecipeDraftIssue[]) {
+    super("Заполните обязательные поля рецепта.");
+    this.name = "RecipeDraftValidationError";
+  }
+}
+
 export function toRecipeDraft(recipe?: Recipe): RecipeDraft {
   if (!recipe) {
     return { name: "", original_text: "", ingredients: [], steps: [], tags: [] };
@@ -21,7 +33,41 @@ export function toRecipeDraft(recipe?: Recipe): RecipeDraft {
   };
 }
 
+export function validateRecipeDraft(draft: RecipeDraft): RecipeDraftIssue[] {
+  const issues: RecipeDraftIssue[] = [];
+  if (!draft.name.trim()) {
+    issues.push({ field: "name", message: "Укажите название рецепта." });
+  }
+
+  draft.ingredients.forEach((ingredient, index) => {
+    const hasAmount = Boolean(ingredient.quantity.trim() || ingredient.unit.trim());
+    if (!ingredient.name.trim() && hasAmount) {
+      issues.push({
+        field: "ingredient",
+        index,
+        message: "Укажите ингредиент, чтобы сохранить количество и единицу измерения.",
+      });
+    }
+  });
+
+  draft.steps.forEach((step, index) => {
+    const hasConditions = Boolean(step.duration_minutes.trim() || step.temperature_c.trim());
+    if (!step.text.trim() && hasConditions) {
+      issues.push({
+        field: "step",
+        index,
+        message: "Добавьте описание шага, чтобы сохранить время или температуру.",
+      });
+    }
+  });
+
+  return issues;
+}
+
 export function toRecipeInput(draft: RecipeDraft): RecipeInput {
+  const issues = validateRecipeDraft(draft);
+  if (issues.length) throw new RecipeDraftValidationError(issues);
+
   return {
     name: draft.name.trim(),
     original_text: draft.original_text.trim() || null,

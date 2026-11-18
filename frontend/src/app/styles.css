@@ -184,8 +184,10 @@ h2 { color: var(--ink); font-family: Georgia, "Times New Roman", serif; font-siz
   font-weight: 400;
 }
 .field input::placeholder, .field textarea::placeholder, .tag-editor-row input::placeholder, .search-field input::placeholder { color: #a2a59b; }
+.field input[aria-invalid="true"], .field textarea[aria-invalid="true"] { border-color: #bd765e; background: #fdf7f5; }
 .field textarea { min-height: 86px; resize: vertical; line-height: 1.55; }
 .form-error { margin: 0; padding: 11px 13px; color: #8c4637; border-left: 2px solid #bd765e; background: #f7ebe7; font-size: 13px; line-height: 1.5; }
+.field-error { grid-column: 1 / -1; margin: 0; color: #984e3e; font-size: 11px; line-height: 1.45; }
 
 /* Recipe collection */
 .collection-heading { display: flex; justify-content: space-between; align-items: flex-end; gap: 26px; }
