@@ -10,14 +10,12 @@ $pythonPath = $pythonCandidates |
     Select-Object -First 1
 
 if (-not $pythonPath) {
-    Write-Error "Python environment not found. Create backend\.venv and install dependencies as described in README.md."
-    exit 1
+    throw "Python environment not found. Create backend\.venv and install dependencies as described in README.md."
 }
 
 Push-Location $backendDirectory
 try {
     & $pythonPath -m uvicorn app.main:app --host 0.0.0.0 --port 8000
-    exit $LASTEXITCODE
 }
 finally {
     Pop-Location
