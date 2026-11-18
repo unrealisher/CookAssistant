@@ -1,8 +1,9 @@
-import { FormEvent, useState } from "react";
+import { FormEvent, useEffect, useState } from "react";
 
 import { authApi } from "../../../entities/user/api/auth-api";
 import type { Credentials, User } from "../../../entities/user/model/types";
 import { ApiError } from "../../../shared/api/client";
+import { shouldShowLoginAfterSetupConflict } from "../model/auth-mode";
 
 interface AuthenticationFormProps {
   setupRequired: boolean;
@@ -15,8 +16,13 @@ export function AuthenticationForm({
 }: AuthenticationFormProps) {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
+  const [requiresSetup, setRequiresSetup] = useState(setupRequired);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState("");
+
+  useEffect(() => {
+    setRequiresSetup(setupRequired);
+  }, [setupRequired]);
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -25,18 +31,21 @@ export function AuthenticationForm({
 
     const credentials: Credentials = { username: username.trim(), password };
     try {
-      const user = setupRequired ? await authApi.setup(credentials) : await authApi.login(credentials);
+      const user = requiresSetup ? await authApi.setup(credentials) : await authApi.login(credentials);
       onAuthenticated(user);
     } catch (cause) {
-      setError(
-        cause instanceof ApiError && cause.status === 409
-          ? "Аккаунт уже создан. Войдите с его данными."
-          : cause instanceof ApiError && cause.status === 401
-            ? "Неверное имя пользователя или пароль. Проверьте данные и попробуйте снова."
-          : cause instanceof Error
-            ? cause.message
-            : "Не удалось выполнить вход. Попробуйте ещё раз.",
-      );
+      if (
+        cause instanceof ApiError &&
+        shouldShowLoginAfterSetupConflict(requiresSetup, cause.status)
+      ) {
+        setRequiresSetup(false);
+        setPassword("");
+        setError("Аккаунт уже создан в другой вкладке. Теперь войдите с его данными.");
+      } else if (cause instanceof ApiError && cause.status === 401) {
+        setError("Неверное имя пользователя или пароль. Проверьте данные и попробуйте снова.");
+      } else {
+        setError(cause instanceof Error ? cause.message : "Не удалось выполнить вход. Попробуйте ещё раз.");
+      }
     } finally {
       setIsSubmitting(false);
     }
@@ -45,9 +54,9 @@ export function AuthenticationForm({
   return (
     <section className="auth-panel" aria-labelledby="auth-title">
       <p className="eyebrow">ВАША ЛИЧНАЯ КОЛЛЕКЦИЯ</p>
-      <h1 id="auth-title">{setupRequired ? "Создайте аккаунт владельца" : "С возвращением"}</h1>
+      <h1 id="auth-title">{requiresSetup ? "Создайте аккаунт владельца" : "С возвращением"}</h1>
       <p className="auth-intro">
-        {setupRequired
+        {requiresSetup
           ? "Это единственный аккаунт для доступа к рецептам на этом компьютере."
           : "Войдите, чтобы открыть свои рецепты."}
       </p>
@@ -66,7 +75,7 @@ export function AuthenticationForm({
         <label className="field">
           <span>Пароль</span>
           <input
-            autoComplete={setupRequired ? "new-password" : "current-password"}
+            autoComplete={requiresSetup ? "new-password" : "current-password"}
             minLength={12}
             maxLength={256}
             name="password"
@@ -75,11 +84,11 @@ export function AuthenticationForm({
             value={password}
             onChange={(event) => setPassword(event.target.value)}
           />
-          {setupRequired && <small>Не менее 12 символов.</small>}
+          {requiresSetup && <small>Не менее 12 символов.</small>}
         </label>
         {error && <p className="form-error" role="alert">{error}</p>}
         <button className="button button--primary auth-submit" disabled={isSubmitting} type="submit">
-          {isSubmitting ? "Подождите…" : setupRequired ? "Создать аккаунт" : "Войти"}
+          {isSubmitting ? "Подождите…" : requiresSetup ? "Создать аккаунт" : "Войти"}
         </button>
       </form>
     </section>
