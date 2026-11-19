@@ -119,6 +119,19 @@ class RecipeFields(BaseModel):
         return normalized
 
 
+class RecipeFromText(BaseModel):
+    """Free-form recipe text sent for AI parsing and immediate persistence."""
+
+    text: Annotated[str, Field(min_length=1, max_length=20_000)]
+
+    @field_validator("text")
+    @classmethod
+    def reject_blank_text(cls, value: str) -> str:
+        if not value.strip():
+            raise ValueError("Recipe text must not be blank")
+        return value
+
+
 class RecipeCreate(RecipeFields):
     """Structured recipe payload for creating a recipe."""
 

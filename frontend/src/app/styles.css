@@ -255,7 +255,10 @@ h2 { color: var(--ink); font-family: Georgia, "Times New Roman", serif; font-siz
 /* Recipe editor */
 .editor-page { max-width: 830px; }
 .editor-page > .back-link { margin-bottom: 25px; }
-.recipe-editor { display: grid; gap: 24px; }
+.recipe-editor, .recipe-capture { display: grid; gap: 24px; }
+.recipe-capture .editor-heading h1 { font-size: clamp(42px, 5vw, 58px); }
+.capture-intro { max-width: 620px; margin: 15px 0 0; color: var(--muted); font-size: 14px; line-height: 1.65; }
+.field .recipe-capture-input { min-height: 280px; line-height: 1.7; }
 .editor-heading { margin-bottom: 0; }
 .editor-heading .eyebrow { margin-bottom: 10px; }
 .editor-heading h1 { font-size: clamp(42px, 5vw, 58px); }

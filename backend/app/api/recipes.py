@@ -2,20 +2,24 @@
 
 from __future__ import annotations
 
+from collections.abc import Callable
 from datetime import UTC, datetime
 from typing import Annotated
 
 from fastapi import APIRouter, Depends, HTTPException, Query, Response, status
+from pydantic import ValidationError
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from app.auth import get_current_user
 from app.db import get_db
 from app.models import Ingredient, Recipe, Step, Tag, User
+from app.recipe_parser import ParsedRecipe, RecipeParseError, parse_recipe_text
 from app.schemas import (
     IngredientInput,
     IngredientResponse,
     RecipeCreate,
+    RecipeFromText,
     RecipeResponse,
     RecipeUpdate,
     StepInput,
@@ -24,6 +28,15 @@ from app.schemas import (
 
 router = APIRouter(prefix="/api/v1/recipes", tags=["recipes"])
 CurrentUser = Annotated[User, Depends(get_current_user)]
+
+
+def get_recipe_parser() -> Callable[[str, list[str]], ParsedRecipe]:
+    """Resolve the parser as a dependency so tests never need a live API key."""
+
+    return parse_recipe_text
+
+
+RecipeParser = Annotated[Callable[[str, list[str]], ParsedRecipe], Depends(get_recipe_parser)]
 
 
 def _resolve_tags(db: Session, names: list[str]) -> list[Tag]:
@@ -132,6 +145,56 @@ def create_recipe(
         ingredients=_make_ingredients(payload.ingredients),
         steps=_make_steps(payload.steps),
         tags=_resolve_tags(db, payload.tags),
+    )
+    db.add(recipe)
+    db.commit()
+    db.refresh(recipe)
+    return _recipe_response(recipe)
+
+
+@router.post(
+    "/from-text",
+    response_model=RecipeResponse,
+    status_code=status.HTTP_201_CREATED,
+    summary="Create a recipe from free-form text",
+)
+def create_recipe_from_text(
+    payload: RecipeFromText,
+    owner: CurrentUser,
+    parser: RecipeParser,
+    db: Session = Depends(get_db),
+) -> RecipeResponse:
+    """Parse free-form text and persist the structured recipe in one request."""
+
+    existing_tag_names = [tag.name for tag in db.scalars(select(Tag)).all()]
+    try:
+        parsed = parser(payload.text, existing_tag_names)
+    except RecipeParseError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE, detail=str(exc)
+        ) from exc
+
+    try:
+        recipe_data = RecipeCreate(
+            name=parsed.name,
+            original_text=None,
+            ingredients=[item.model_dump() for item in parsed.ingredients],
+            steps=[item.model_dump() for item in parsed.steps],
+            tags=parsed.tags,
+        )
+    except ValidationError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_502_BAD_GATEWAY,
+            detail="ИИ вернул поля за допустимыми пределами. Проверьте текст и повторите попытку.",
+        ) from exc
+
+    recipe = Recipe(
+        owner_id=owner.id,
+        name=recipe_data.name,
+        original_text=payload.text,
+        ingredients=_make_ingredients(recipe_data.ingredients),
+        steps=_make_steps(recipe_data.steps),
+        tags=_resolve_tags(db, recipe_data.tags),
     )
     db.add(recipe)
     db.commit()
