@@ -91,6 +91,28 @@ def _contains_refusal(response: Any) -> bool:
     return False
 
 
+def _extract_output_text(response: dict[str, Any]) -> str:
+    text_parts: list[str] = []
+    output = response.get("output", [])
+    if not isinstance(output, list):
+        return ""
+
+    for item in output:
+        if not isinstance(item, dict):
+            continue
+        content_items = item.get("content", [])
+        if not isinstance(content_items, list):
+            continue
+        for content in content_items:
+            if not isinstance(content, dict) or content.get("type") != "output_text":
+                continue
+            text = content.get("text")
+            if isinstance(text, str):
+                text_parts.append(text)
+
+    return "".join(text_parts)
+
+
 def parse_recipe_text(text: str, existing_tags: list[str]) -> ParsedRecipe:
     """Parse text with strict JSON Schema output, keeping provider details private."""
 
@@ -147,9 +169,7 @@ def parse_recipe_text(text: str, existing_tags: list[str]) -> ParsedRecipe:
             "ИИ-разбор не завершился. Попробуйте сократить текст и повторить попытку."
         )
 
-    output_text = response_data.get("output_text", "")
-    if not isinstance(output_text, str):
-        output_text = ""
+    output_text = _extract_output_text(response_data)
     try:
         return ParsedRecipe.model_validate_json(output_text)
     except (ValidationError, ValueError) as exc:

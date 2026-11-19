@@ -13,11 +13,17 @@ def _response(
     *,
     status: str = "completed",
     refusal: bool = False,
+    include_text: bool = True,
 ) -> dict[str, object]:
+    content: list[dict[str, object]] = []
+    if refusal:
+        content = [{"type": "refusal", "refusal": "not a recipe"}]
+    elif include_text:
+        content = [{"type": "output_text", "text": json.dumps(output or {}, ensure_ascii=False)}]
+
     return {
-        "output_text": json.dumps(output or {}, ensure_ascii=False),
         "status": status,
-        "output": [{"content": [{"type": "refusal"}]}] if refusal else [],
+        "output": [{"type": "message", "content": content}],
     }
 
 
@@ -121,6 +127,7 @@ def test_parse_recipe_text_fails_without_key(monkeypatch: pytest.MonkeyPatch) ->
         (_response(status="incomplete"), "не завершился"),
         (_response(status="completed", refusal=True), "не смог разобрать"),
         (_response(status="completed", output={"invalid": True}), "некорректный разбор"),
+        (_response(status="completed", include_text=False), "некорректный разбор"),
     ],
 )
 def test_parse_recipe_text_handles_incomplete_refusal_and_invalid_output(
