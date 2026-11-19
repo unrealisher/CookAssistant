@@ -100,3 +100,25 @@ def test_parse_recipe_text_handles_incomplete_refusal_and_invalid_output(
 
     with pytest.raises(recipe_parser.RecipeParseError, match=message):
         recipe_parser.parse_recipe_text("Суп", [])
+
+
+def test_parse_recipe_text_sanitizes_openai_sdk_errors(monkeypatch: pytest.MonkeyPatch) -> None:
+    from openai import OpenAIError
+
+    class FakeResponses:
+        def create(self, **_: object) -> SimpleNamespace:
+            raise OpenAIError("private provider detail")
+
+    class FakeOpenAI:
+        def __init__(self, **_: object) -> None:
+            self.responses = FakeResponses()
+
+    monkeypatch.setattr(recipe_parser, "OpenAI", FakeOpenAI)
+    monkeypatch.setattr(recipe_parser, "load_dotenv", lambda **_: None)
+    monkeypatch.setenv("OPENAI_API_KEY", "test-key")
+
+    with pytest.raises(recipe_parser.RecipeParseError) as error:
+        recipe_parser.parse_recipe_text("Суп", [])
+
+    assert str(error.value) == "Сервис ИИ-разбора сейчас недоступен. Попробуйте ещё раз."
+    assert "private provider detail" not in str(error.value)
