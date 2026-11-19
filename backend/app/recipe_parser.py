@@ -95,6 +95,7 @@ def parse_recipe_text(text: str, existing_tags: list[str]) -> ParsedRecipe:
     try:
         response = OpenAI(api_key=api_key, timeout=45.0, max_retries=1).responses.create(
             model=model,
+            store=False,
             instructions=SYSTEM_INSTRUCTIONS,
             input=json.dumps(
                 {"recipe_text": text, "existing_tags": existing_tags},

@@ -59,6 +59,7 @@ def test_parse_recipe_text_uses_responses_json_schema_and_model(
     assert result.name == "Борщ"
     assert result.ingredients[1].quantity == "по вкусу"
     assert captured["model"] == "test-model"
+    assert captured["store"] is False
     assert captured["input"]
     assert captured["text"]["format"]["type"] == "json_schema"
     assert captured["text"]["format"]["strict"] is True
