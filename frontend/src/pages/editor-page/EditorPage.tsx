@@ -4,6 +4,7 @@ import { recipeApi } from "../../entities/recipe/api/recipe-api";
 import { toRecipeDraft, toRecipeInput } from "../../entities/recipe/lib/draft";
 import type { Recipe, RecipeDraft } from "../../entities/recipe/model/types";
 import { ApiError } from "../../shared/api/client";
+import { RecipeCaptureForm } from "../../features/recipes/ui/RecipeCaptureForm";
 import { RecipeEditor } from "../../features/recipes/ui/RecipeEditor";
 
 interface EditorPageProps {
@@ -41,12 +42,28 @@ export function EditorPage({ recipeId, onCancel, onSaved, onUnauthorized }: Edit
   if (error) {
     return <div className="page-message"><p className="notice notice--error" role="alert">{error}</p><button className="button button--secondary" onClick={onCancel} type="button">Назад</button></div>;
   }
-  if (recipeId && !recipe) return null;
+
+  if (!recipeId) {
+    return (
+      <div className="editor-page">
+        <button className="back-link" onClick={onCancel} type="button"><span aria-hidden="true">←</span> Назад</button>
+        <RecipeCaptureForm
+          onCancel={onCancel}
+          onSave={onSaved}
+          onUnauthorized={onUnauthorized}
+          save={recipeApi.createFromText}
+        />
+      </div>
+    );
+  }
+
+  const currentRecipeId = recipeId;
+  if (!currentRecipeId || !recipe) return null;
 
   async function save(draft: RecipeDraft) {
     const data = toRecipeInput(draft);
     try {
-      return recipeId ? await recipeApi.update(recipeId, data) : await recipeApi.create(data);
+      return await recipeApi.update(currentRecipeId, data);
     } catch (cause) {
       if (cause instanceof ApiError && cause.status === 401) onUnauthorized();
       throw cause;
@@ -57,8 +74,8 @@ export function EditorPage({ recipeId, onCancel, onSaved, onUnauthorized }: Edit
     <div className="editor-page">
       <button className="back-link" onClick={onCancel} type="button"><span aria-hidden="true">←</span> Назад</button>
       <RecipeEditor
-        initialDraft={toRecipeDraft(recipe ?? undefined)}
-        isEditing={Boolean(recipeId)}
+        initialDraft={toRecipeDraft(recipe)}
+        isEditing
         onCancel={onCancel}
         onSave={onSaved}
         save={save}

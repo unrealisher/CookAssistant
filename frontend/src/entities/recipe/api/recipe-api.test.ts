@@ -16,4 +16,22 @@ describe("recipeApi", () => {
       expect.objectContaining({ credentials: "include" }),
     );
   });
+
+  it("sends free-form recipe text to the create-from-text endpoint", async () => {
+    const fetchMock = vi.fn().mockResolvedValue(
+      new Response(JSON.stringify({ id: 1 }), { status: 201 }),
+    );
+    vi.stubGlobal("fetch", fetchMock);
+
+    await recipeApi.createFromText("Пирог с яблоками");
+
+    expect(fetchMock).toHaveBeenCalledWith(
+      "/api/v1/recipes/from-text",
+      expect.objectContaining({
+        method: "POST",
+        body: JSON.stringify({ text: "Пирог с яблоками" }),
+        credentials: "include",
+      }),
+    );
+  });
 });
