@@ -66,8 +66,9 @@ def _validate_database(path: Path) -> str:
 def _copy_database(source: Path, destination: Path) -> None:
     """Copy a live SQLite database into a new file using SQLite's backup API."""
     destination.parent.mkdir(parents=True, exist_ok=True)
+    # Keep the staging name short because Windows sandbox paths can approach MAX_PATH.
     file_descriptor, temporary_name = tempfile.mkstemp(
-        prefix=f".{destination.name}.", suffix=".tmp", dir=destination.parent
+        prefix=".ca-", suffix=".tmp", dir=destination.parent
     )
     os.close(file_descriptor)
     temporary_path = Path(temporary_name)

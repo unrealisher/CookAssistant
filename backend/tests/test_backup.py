@@ -32,6 +32,7 @@ def test_backup_and_restore_preserve_live_database(
         connection.execute(
             "INSERT INTO users (id, username, password_hash) VALUES (1, 'owner', 'hash')"
         )
+    connection.close()
 
     backup_path = create_backup()
     assert backup_path is not None
@@ -39,6 +40,7 @@ def test_backup_and_restore_preserve_live_database(
 
     with sqlite3.connect(database_path) as connection:
         connection.execute("UPDATE users SET username = 'changed' WHERE id = 1")
+    connection.close()
 
     safety_backup = restore_backup(backup_path)
 
