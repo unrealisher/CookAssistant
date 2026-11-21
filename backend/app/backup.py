@@ -52,7 +52,13 @@ def _validate_database(path: Path) -> str:
             ]
             if len(revisions) != 1 or not revisions[0]:
                 raise BackupError(f"Database has an invalid Alembic revision: {path}")
-            return str(revisions[0])
+            revision = str(revisions[0])
+            if revision not in _known_migration_revisions():
+                raise BackupError(
+                    f"Database revision {revision!r} is not present in this application's "
+                    f"migration history: {path}"
+                )
+            return revision
     except sqlite3.DatabaseError as error:
         raise BackupError(f"Cannot read SQLite database {path}: {error}") from error
 
@@ -134,6 +140,14 @@ def _alembic_config() -> Config:
     config = Config(str(backend_dir / "alembic.ini"))
     config.set_main_option("script_location", str(backend_dir / "alembic"))
     return config
+
+
+def _known_migration_revisions() -> set[str]:
+    """Return every revision this application knows how to upgrade from."""
+    return {
+        revision.revision
+        for revision in ScriptDirectory.from_config(_alembic_config()).walk_revisions()
+    }
 
 
 def verify_migrations() -> str:
