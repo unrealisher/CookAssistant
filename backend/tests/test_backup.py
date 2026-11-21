@@ -1,0 +1,97 @@
+"""Tests for safe SQLite backup, restore, and migration verification."""
+
+from __future__ import annotations
+
+import sqlite3
+from pathlib import Path
+
+import pytest
+
+from app import db
+from app.backup import BackupError, create_backup, restore_backup, verify_migrations
+
+
+def test_backup_skips_when_database_does_not_exist(tmp_path: Path) -> None:
+    database_path = tmp_path / "not-created.sqlite3"
+
+    assert create_backup(
+        source_path=database_path,
+        destination_dir=tmp_path / "backups",
+    ) is None
+    assert not (tmp_path / "backups").exists()
+
+
+def test_backup_and_restore_preserve_live_database(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    data_dir = tmp_path / "app-data"
+    monkeypatch.setenv(db.DATA_DIRECTORY_ENV, str(data_dir))
+    db.run_migrations()
+    database_path = db.get_database_path()
+    with sqlite3.connect(database_path) as connection:
+        connection.execute(
+            "INSERT INTO users (id, username, password_hash) VALUES (1, 'owner', 'hash')"
+        )
+
+    backup_path = create_backup()
+    assert backup_path is not None
+    assert backup_path.parent == data_dir / "backups"
+
+    with sqlite3.connect(database_path) as connection:
+        connection.execute("UPDATE users SET username = 'changed' WHERE id = 1")
+
+    safety_backup = restore_backup(backup_path)
+
+    assert safety_backup is not None
+    assert safety_backup.name.startswith("before-restore-")
+    with sqlite3.connect(database_path) as connection:
+        restored_username = connection.execute("SELECT username FROM users WHERE id = 1").fetchone()
+    with sqlite3.connect(safety_backup) as connection:
+        preserved_username = connection.execute(
+            "SELECT username FROM users WHERE id = 1"
+        ).fetchone()
+
+    assert restored_username == ("owner",)
+    assert preserved_username == ("changed",)
+
+
+def test_restore_rejects_invalid_backup_without_changing_live_database(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    data_dir = tmp_path / "app-data"
+    monkeypatch.setenv(db.DATA_DIRECTORY_ENV, str(data_dir))
+    db.run_migrations()
+    database_path = db.get_database_path()
+    with sqlite3.connect(database_path) as connection:
+        connection.execute(
+            "INSERT INTO users (id, username, password_hash) VALUES (1, 'owner', 'hash')"
+        )
+
+    invalid_backup = tmp_path / "invalid.sqlite3"
+    invalid_backup.write_text("not a SQLite database", encoding="utf-8")
+
+    with pytest.raises(BackupError, match="Cannot read SQLite database"):
+        restore_backup(invalid_backup)
+
+    with sqlite3.connect(database_path) as connection:
+        username = connection.execute("SELECT username FROM users WHERE id = 1").fetchone()
+    assert username == ("owner",)
+
+
+def test_restore_refuses_sqlite_sidecars(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    data_dir = tmp_path / "app-data"
+    monkeypatch.setenv(db.DATA_DIRECTORY_ENV, str(data_dir))
+    db.run_migrations()
+    database_path = db.get_database_path()
+    backup_path = create_backup()
+    assert backup_path is not None
+    database_path.with_name(f"{database_path.name}-wal").touch()
+
+    with pytest.raises(BackupError, match="Stop CookAssistant"):
+        restore_backup(backup_path)
+
+
+def test_verify_migrations_uses_a_disposable_database() -> None:
+    assert verify_migrations() == "0001_initial_data_model"
