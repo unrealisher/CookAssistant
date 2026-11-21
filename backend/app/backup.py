@@ -39,16 +39,13 @@ def _validate_database(path: Path) -> str:
 
             tables = {
                 row[0]
-                for row in connection.execute(
-                    "SELECT name FROM sqlite_master WHERE type = 'table'"
-                )
+                for row in connection.execute("SELECT name FROM sqlite_master WHERE type = 'table'")
             }
             if not {"alembic_version", "users", "recipes"} <= tables:
                 raise BackupError(f"File is not a migrated CookAssistant database: {path}")
 
             revisions = [
-                row[0]
-                for row in connection.execute("SELECT version_num FROM alembic_version")
+                row[0] for row in connection.execute("SELECT version_num FROM alembic_version")
             ]
             if len(revisions) != 1 or not revisions[0]:
                 raise BackupError(f"Database has an invalid Alembic revision: {path}")
@@ -109,9 +106,7 @@ def create_backup(
     except ValueError:
         pass
     else:
-        raise BackupError(
-            f"Backup directory must be outside the Git repository: {backup_dir}"
-        )
+        raise BackupError(f"Backup directory must be outside the Git repository: {backup_dir}")
     backup_path = backup_dir / _backup_name(prefix)
     _copy_database(source, backup_path)
     return backup_path
@@ -125,9 +120,10 @@ def restore_backup(backup_path: Path, *, database_path: Path | None = None) -> P
         raise BackupError("The backup path must not be the live database path")
     _validate_database(backup)
 
-    if database.with_name(f"{database.name}-wal").exists() or database.with_name(
-        f"{database.name}-shm"
-    ).exists():
+    if (
+        database.with_name(f"{database.name}-wal").exists()
+        or database.with_name(f"{database.name}-shm").exists()
+    ):
         raise BackupError(
             "SQLite sidecar files are present. Stop CookAssistant and retry the restore."
         )

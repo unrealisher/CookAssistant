@@ -14,10 +14,13 @@ from app.backup import BackupError, create_backup, restore_backup, verify_migrat
 def test_backup_skips_when_database_does_not_exist(tmp_path: Path) -> None:
     database_path = tmp_path / "not-created.sqlite3"
 
-    assert create_backup(
-        source_path=database_path,
-        destination_dir=tmp_path / "backups",
-    ) is None
+    assert (
+        create_backup(
+            source_path=database_path,
+            destination_dir=tmp_path / "backups",
+        )
+        is None
+    )
     assert not (tmp_path / "backups").exists()
 
 
@@ -108,9 +111,7 @@ def test_restore_rejects_invalid_backup_without_changing_live_database(
     assert username == ("owner",)
 
 
-def test_restore_refuses_sqlite_sidecars(
-    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
-) -> None:
+def test_restore_refuses_sqlite_sidecars(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
     data_dir = tmp_path / "app-data"
     monkeypatch.setenv(db.DATA_DIRECTORY_ENV, str(data_dir))
     db.run_migrations()
