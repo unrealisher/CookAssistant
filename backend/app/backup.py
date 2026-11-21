@@ -103,6 +103,15 @@ def create_backup(
 
     _validate_database(source)
     backup_dir = (destination_dir or (db.get_data_dir() / "backups")).resolve()
+    repository_root = Path(db.__file__).resolve().parents[2]
+    try:
+        backup_dir.relative_to(repository_root)
+    except ValueError:
+        pass
+    else:
+        raise BackupError(
+            f"Backup directory must be outside the Git repository: {backup_dir}"
+        )
     backup_path = backup_dir / _backup_name(prefix)
     _copy_database(source, backup_path)
     return backup_path

@@ -21,6 +21,34 @@ def test_backup_skips_when_database_does_not_exist(tmp_path: Path) -> None:
     assert not (tmp_path / "backups").exists()
 
 
+def test_backup_rejects_destination_inside_repository(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    monkeypatch.setenv(db.DATA_DIRECTORY_ENV, str(tmp_path / "app-data"))
+    db.run_migrations()
+    repository_root = Path(db.__file__).resolve().parents[2]
+    forbidden_directory = repository_root / "test-backups"
+
+    with pytest.raises(BackupError, match="must be outside the Git repository"):
+        create_backup(destination_dir=forbidden_directory)
+
+    assert not forbidden_directory.exists()
+
+
+def test_backup_allows_explicit_destination_outside_repository(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    monkeypatch.setenv(db.DATA_DIRECTORY_ENV, str(tmp_path / "app-data"))
+    db.run_migrations()
+    external_directory = tmp_path / "external-backups"
+
+    backup_path = create_backup(destination_dir=external_directory)
+
+    assert backup_path is not None
+    assert backup_path.parent == external_directory
+    assert backup_path.is_file()
+
+
 def test_backup_and_restore_preserve_live_database(
     monkeypatch: pytest.MonkeyPatch, tmp_path: Path
 ) -> None:
